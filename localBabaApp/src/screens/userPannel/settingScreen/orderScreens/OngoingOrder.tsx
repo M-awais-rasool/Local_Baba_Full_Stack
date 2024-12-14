@@ -37,6 +37,8 @@ const OngoingOrder = () => {
         return null;
       }
     },
+    refetchInterval: 1000,
+    refetchIntervalInBackground: true,
   });
 
   const handleCancelOrder = (id: string) => {

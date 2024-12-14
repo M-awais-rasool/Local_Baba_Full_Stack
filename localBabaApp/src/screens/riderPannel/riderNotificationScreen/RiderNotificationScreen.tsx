@@ -6,11 +6,12 @@ import {isNetworkAvailable} from '../../../api';
 import {useToast} from 'react-native-toasty-toast';
 import {get_notification} from '../../../services';
 import {fetchAddress} from '../../../hooks/Hooks';
-import Theme from '../../../theme/Theme';
+import { useIsFocused } from '@react-navigation/native';
 
 const RiderNotificationScreen = () => {
   const {showToast} = useToast();
   const [deliveryItems, setDeliveryItems] = useState<any[]>([]);
+  const isFocused = useIsFocused();
 
   const {data} = useQuery({
     queryKey: ['notification'],
@@ -33,6 +34,7 @@ const RiderNotificationScreen = () => {
         showToast(err.response.data.message, 'error', 'bottom', 1000);
       }
     },
+    enabled: isFocused,
   });
 
   useEffect(() => {

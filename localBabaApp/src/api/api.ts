@@ -4,7 +4,7 @@ import {cacheData} from '../module';
 import { Platform } from 'react-native';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 
-const API_BASE_URL = 'http://192.168.100.252:8080/';
+const API_BASE_URL = 'http://192.168.100.109:8080/';
 let token: any;
 let role: any;
 let name: any;

@@ -59,6 +59,8 @@ const TrackOrder = (props: any) => {
       }
     },
     enabled: isFocused,
+    refetchInterval: 1000,
+    refetchIntervalInBackground: true,
   });
 
   useEffect(() => {

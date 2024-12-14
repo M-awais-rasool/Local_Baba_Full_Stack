@@ -23,7 +23,6 @@ const normalizeValue = (value: number, minValue: number, maxValue: number) =>
 const RiderChart: React.FC<ChartProps> = ({data, highlightIndex}) => {
   const maxValue = Math.max(...data.map(point => point.value));
   const minValue = Math.min(...data.map(point => point.value));
-   console.log(data)
   const graphPoints = data
     .map(
       (point, index) =>

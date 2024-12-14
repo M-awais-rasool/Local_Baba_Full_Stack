@@ -104,22 +104,28 @@ func Order_assigned_for_rider(c *gin.Context, firebaseApp *firebase.App) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Token missing"})
+		fmt.Println("Error: Token missing")
 		return
 	}
+	fmt.Println("Token retrieved successfully")
 
 	claims, err := utils.ValidateToken(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"status": "error", "message": "Invalid token"})
+		fmt.Println("Error: Invalid token", err)
 		return
 	}
+	fmt.Println("Token validated successfully")
 
 	var body struct {
 		Id string `json:"id"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		fmt.Println("Error: Invalid request body", err)
 		return
 	}
+	fmt.Println("Request body parsed successfully:", body)
 
 	collection := database.GetCollection("order")
 	ctx := context.Background()
@@ -128,24 +134,31 @@ func Order_assigned_for_rider(c *gin.Context, firebaseApp *firebase.App) {
 	var existingOrder models.Order
 	if err := collection.FindOne(ctx, bson.M{"rider_id": riderID, "status": "Assigned"}).Decode(&existingOrder); err == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "You already have an assigned order"})
+		fmt.Println("Error: Rider already has an assigned order")
 		return
 	} else if err != mongo.ErrNoDocuments {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check for existing orders"})
+		fmt.Println("Error: Failed to check for existing orders", err)
 		return
 	}
+	fmt.Println("No existing assigned orders for rider")
 
 	var order models.Order
 	if err := collection.FindOne(ctx, bson.M{"orderId": body.Id}).Decode(&order); err != nil {
 		if err == mongo.ErrNoDocuments {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+			fmt.Println("Error: Order not found", body.Id)
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve order"})
+		fmt.Println("Error: Failed to retrieve order", err)
 		return
 	}
+	fmt.Println("Order retrieved successfully:", order)
 
 	if order.Status == "Assigned" {
 		c.JSON(http.StatusConflict, gin.H{"error": "Order is already assigned to a rider"})
+		fmt.Println("Error: Order is already assigned to a rider")
 		return
 	}
 
@@ -158,21 +171,27 @@ func Order_assigned_for_rider(c *gin.Context, firebaseApp *firebase.App) {
 	_, err = collection.UpdateOne(ctx, bson.M{"orderId": body.Id}, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order"})
+		fmt.Println("Error: Failed to update order", err)
 		return
 	}
+	fmt.Println("Order status updated successfully")
 
 	userTokenCollection := database.GetCollection("fcm_tokens")
 	var userToken models.FCMToken
 	if err := userTokenCollection.FindOne(ctx, bson.M{"user_id": order.UserID}).Decode(&userToken); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user FCM token"})
+		fmt.Println("Error: Failed to retrieve user FCM token", err)
 		return
 	}
+	fmt.Println("User FCM token retrieved successfully:", userToken.FCMToken)
+
 	client, err := firebaseApp.Messaging(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "Failed to initialize Firebase messaging client",
 			"details": err.Error(),
 		})
+		fmt.Println("Error: Failed to initialize Firebase messaging client", err)
 		return
 	}
 
@@ -187,10 +206,13 @@ func Order_assigned_for_rider(c *gin.Context, firebaseApp *firebase.App) {
 	_, err = client.Send(ctx, message)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send notification"})
+		fmt.Println("Error: Failed to send notification", err)
 		return
 	}
+	fmt.Println("Notification sent successfully")
 
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Order status updated and notification sent"})
+	fmt.Println("Order status updated and notification sent successfully")
 }
 
 func Get_completed_orders_count(c *gin.Context) {
@@ -646,7 +668,7 @@ func GetTodayDeliveredOrders(c *gin.Context) {
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filter := bson.M{
-		"status": "Accepted",
+		"status": "Delivered",
 		"createdAt": bson.M{
 			"$gte": startOfDay,
 			"$lt":  endOfDay,
