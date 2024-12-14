@@ -19,7 +19,7 @@ func initializeFirebase() (*firebase.App, error) {
 		return nil, fmt.Errorf("cannot get current directory: %v", err)
 	}
 
-	credentialsPath := filepath.Join(currentDir, "localbaba-4ee69-firebase-adminsdk-ktbpf-2b80bdd911.json")
+	credentialsPath := filepath.Join(currentDir, "")
 
 	if _, err := os.Stat(credentialsPath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("credentials file not found at %s", credentialsPath)

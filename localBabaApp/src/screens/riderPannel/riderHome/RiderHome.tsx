@@ -28,10 +28,10 @@ const RiderHome = (props: any) => {
   const [deliveryItems, setDeliveryItems] = useState<any[]>([]);
 
   const chartData = [
-    {time: 'Sun', value: 1},
+    {time: 'Sun', value: 2},
     {time: 'Mon', value: 1},
     {time: 'Tue', value: 2},
-    {time: 'Wed', value: 1},
+    {time: 'Wed', value: 2},
     {time: 'Thu', value: 1},
     {time: 'Fri', value: 1},
     {time: 'Sat', value: 1},
@@ -56,7 +56,10 @@ const RiderHome = (props: any) => {
         showToast(err.response.data.message, 'error', 'bottom', 1000);
       }
     },
+    refetchInterval: 1000,
+    refetchIntervalInBackground: true,
   });
+
   const {data: completedOrderCount} = useQuery({
     queryKey: ['completedOrderCount'],
     queryFn: async () => {
@@ -128,7 +131,9 @@ const RiderHome = (props: any) => {
           return;
         }
         const res = await get_today_order();
+        console.log(res)
         if (res.status == 'success') {
+          console.log(res.data)
           return res.data;
         } else {
           return null;
@@ -162,6 +167,8 @@ const RiderHome = (props: any) => {
       }
     },
     enabled: isFocused,
+    refetchInterval: 1000,
+    refetchIntervalInBackground: true,
   });
 
   useEffect(() => {
@@ -263,7 +270,7 @@ const RiderHome = (props: any) => {
         <Text style={styles.subTitle}>{'Weekly'}</Text>
       </View>
       <Text style={styles.totalRevenue}>RS {chart?.totalMargin}</Text>
-      <RiderChart data={updatedChartData} />
+      <RiderChart data={updatedChartData||chartData} />
       <View style={{marginTop: Theme.responsiveSize.size20}} />
       <Text style={styles.label}>{'Recent Orders'}</Text>
       {deliveryItems.map((val, index) => (

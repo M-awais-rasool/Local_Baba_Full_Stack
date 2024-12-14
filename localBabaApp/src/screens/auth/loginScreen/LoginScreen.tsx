@@ -91,7 +91,7 @@ const LoginScreen = (props: any) => {
               );
             }
           } catch (error: any) {
-            console.log(error.response.data, ' ERROR! Error in FCM TOKEN');
+            console.log(error, ' ERROR! Error in FCM TOKEN');
           }
         }
         await saveDataToCachedWithKey(

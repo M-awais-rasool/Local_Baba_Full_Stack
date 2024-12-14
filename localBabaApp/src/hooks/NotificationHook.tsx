@@ -9,15 +9,29 @@ import {Add_FCM} from '../services';
 import NavigationService from '../navigation/NavigationService';
 
 export async function requestUserPermission() {
-  const authStatus = await messaging().requestPermission();
-  const enabled =
-    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+  try {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-  if (enabled) {
-    GetFcmToken();
-  } else {
-    console.log('Not enabled');
+    if (enabled) {
+      console.log('Permission granted for remote notifications');
+      await GetFcmToken();
+    } else {
+      console.log('Permission denied for remote notifications');
+    }
+  } catch (error) {
+    console.error('Error requesting user permission:', error);
+  }
+}
+
+async function registerDeviceForRemoteMessages() {
+  try {
+    await messaging().registerDeviceForRemoteMessages();
+    console.log('Device successfully registered for remote messages');
+  } catch (error) {
+    console.error('Failed to register device for remote messages:', error);
   }
 }
 
@@ -28,6 +42,7 @@ async function GetFcmToken() {
   let userID = await getDataFromCachedWithKey(
     AppConstants.AsyncKeyLiterals.userId,
   );
+
   console.log('fcmToken from local storage:: ', fcmToken);
 
   if (
@@ -52,10 +67,11 @@ async function GetFcmToken() {
         );
       }
     } catch (error) {
-      console.log(error, ' ERROR! Error in FCM TOKEN');
+      console.error('Error in FCM TOKEN:', error);
     }
   }
 }
+
 
 async function onDisplayNotification(data: any) {
   await notifee.requestPermission();
